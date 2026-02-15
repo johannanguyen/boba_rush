@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 export default function BobaRush() {
   const [gameState, setGameState] = useState('start');
+  const [isPaused, setIsPaused] = useState(false);
   const [drinkPosition, setDrinkPosition] = useState(50);
   const [pearls, setPearls] = useState([]);
   const [score, setScore] = useState(0);
@@ -21,7 +22,7 @@ export default function BobaRush() {
   const audioContextRef = useRef(null);
   const musicIntervalRef = useRef(null);
 
-  const DRINK_WIDTH = 100;
+  const DRINK_WIDTH = 120;
   const PEARL_SIZE = 30;
   const BASE_FALL_SPEED = 2;
   const BASE_SPAWN_RATE = 1000;
@@ -158,6 +159,20 @@ export default function BobaRush() {
 
   const toggleSound = () => {
     setSoundEnabled(prev => !prev);
+  };
+
+  const togglePause = () => {
+    if (gameState === 'playing') {
+      setGameState('paused');
+      setIsPaused(true);
+      stopBackgroundMusic();
+    } else if (gameState === 'paused') {
+      setGameState('playing');
+      setIsPaused(false);
+      if (soundEnabled) {
+        startBackgroundMusic();
+      }
+    }
   };
 
   useEffect(() => {
@@ -390,11 +405,21 @@ export default function BobaRush() {
             )}
           </button>
 
+          <button
+            onClick={togglePause}
+            className="absolute top-16 right-20 z-30 bg-white/80 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white transition"
+            aria-label="Pause game"
+          >
+            <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </button>
+
           <div className="absolute top-16 left-0 right-0 flex justify-between px-6 z-20">
             <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
               <span className="text-lg font-bold text-purple-600">Score: {score}</span>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg mr-16">
+            <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg mr-32">
               <span className="text-lg font-bold text-pink-600">Level {level}</span>
             </div>
           </div>
@@ -441,6 +466,31 @@ export default function BobaRush() {
               className="w-full h-full object-contain"
               draggable="false"
             />
+          </div>
+        </div>
+      )}
+
+      {gameState === 'paused' && (
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 text-center shadow-2xl max-w-sm mx-4">
+            <h2 className="text-4xl font-bold text-purple-600 mb-6">⏸️ Paused</h2>
+            <div className="space-y-4">
+              <button
+                onClick={togglePause}
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition"
+              >
+                Resume
+              </button>
+              <button
+                onClick={() => {
+                  setGameState('start');
+                  stopBackgroundMusic();
+                }}
+                className="w-full bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:bg-gray-400 transition"
+              >
+                Quit to Menu
+              </button>
+            </div>
           </div>
         </div>
       )}
