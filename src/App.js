@@ -417,10 +417,16 @@ export default function BobaRush() {
 
           <div className="absolute top-16 left-0 right-0 flex justify-between px-6 z-20">
             <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
-              <span className="text-lg font-bold text-purple-600">Score: {score}</span>
+              <div className="flex flex-col items-center">
+                <span className="text-sm font-semibold text-purple-600">Score</span>
+                <span className="text-xl font-bold text-purple-600">{score}</span>
+              </div>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg mr-32">
-              <span className="text-lg font-bold text-pink-600">Level {level}</span>
+            <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg mr-28">
+              <div className="flex flex-col items-center">
+                <span className="text-sm font-semibold text-pink-600">Level</span>
+                <span className="text-xl font-bold text-pink-600">{level}</span>
+              </div>
             </div>
           </div>
 
