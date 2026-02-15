@@ -21,7 +21,7 @@ export default function BobaRush() {
   const audioContextRef = useRef(null);
   const musicIntervalRef = useRef(null);
 
-  const DRINK_WIDTH = 80;
+  const DRINK_WIDTH = 100;
   const PEARL_SIZE = 30;
   const BASE_FALL_SPEED = 2;
   const BASE_SPAWN_RATE = 1000;
@@ -390,7 +390,7 @@ export default function BobaRush() {
             )}
           </button>
 
-          <div className="absolute top-4 left-0 right-0 flex justify-between px-6 z-20">
+          <div className="absolute top-16 left-0 right-0 flex justify-between px-6 z-20">
             <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
               <span className="text-lg font-bold text-purple-600">Score: {score}</span>
             </div>
