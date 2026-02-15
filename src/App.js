@@ -22,7 +22,7 @@ export default function BobaRush() {
   const audioContextRef = useRef(null);
   const musicIntervalRef = useRef(null);
 
-  const DRINK_WIDTH = 120;
+  const DRINK_WIDTH = 100;
   const PEARL_SIZE = 30;
   const BASE_FALL_SPEED = 2;
   const BASE_SPAWN_RATE = 1000;
@@ -457,7 +457,7 @@ export default function BobaRush() {
             style={{
               left: `${drinkPosition}%`,
               width: `${DRINK_WIDTH}px`,
-              height: '100px',
+              height: '120px',
             }}
           >
             <img
