@@ -376,7 +376,7 @@ export default function BobaRush() {
         >
           <button
             onClick={toggleSound}
-            className="absolute top-4 right-4 z-30 bg-white/80 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white transition"
+            className="absolute top-16 right-4 z-30 bg-white/80 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white transition"
             aria-label="Toggle sound"
           >
             {soundEnabled ? (
