@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Preferences } from '@capacitor/preferences';
 
 export default function BobaRush() {
   const [gameState, setGameState] = useState('start');
@@ -51,6 +52,20 @@ export default function BobaRush() {
       return () => clearTimeout(timer);
     }
   }, [showAd, adCountdown]);
+
+  useEffect(() => {
+  const loadHighScore = async () => {
+    try {
+      const { value } = await Preferences.get({ key: 'highScore' });
+      if (value) {
+        setHighScore(parseInt(value));
+      }
+    } catch (error) {
+      console.log('No saved high score yet');
+    }
+  };
+  loadHighScore();
+}, []);
 
   // Play catch sound effect
   const playCatchSound = () => {
@@ -217,11 +232,18 @@ export default function BobaRush() {
     }
   };
 
-  const endGame = () => {
-    setHighScore(prev => Math.max(prev, score));
-    setShowAd(false);
-    setAdCountdown(5);
-    setSavedGameState(null);
+    const endGame = async () => {
+      const newHighScore = Math.max(highScore, score);
+      setHighScore(newHighScore);
+      try {
+        await Preferences.set({ key: 'highScore', value: newHighScore.toString() });
+      } catch (err) {
+        console.error('Failed to save high score:', err);
+      }
+      setGameState('start');
+      setShowAd(false);
+      setAdCountdown(5);
+      setSavedGameState(null);
   };
 
   const spawnPearl = () => {
@@ -302,6 +324,14 @@ export default function BobaRush() {
         if (missedPearl) {
           playLoseSound();
           setSavedGameState({ score, level, drinkPosition });
+          
+          // Save high score
+          const newHighScore = Math.max(highScore, score);
+          setHighScore(newHighScore);
+          Preferences.set({ key: 'highScore', value: newHighScore.toString() }).catch(err => {
+            console.error('Failed to save high score:', err);
+          });
+          
           setShowAd(true);
           setGameState('gameOver');
           stopBackgroundMusic();
