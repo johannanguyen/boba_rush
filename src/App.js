@@ -433,7 +433,7 @@ const startGame = () => {
       console.log('Preparing interstitial ad...');
       
       const options = {
-        adId: 'ca-app-pub-3940256099942544/4411468910',
+        adId: 'ca-app-pub-9841742295978516/9107747830',
       };
       
       console.log('Ad options:', options);
