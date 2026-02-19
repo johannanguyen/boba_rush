@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Preferences } from '@capacitor/preferences';
+import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
+
 
 export default function BobaRush() {
   const [gameState, setGameState] = useState('start');
@@ -50,6 +52,9 @@ export default function BobaRush() {
     if (showAd && adCountdown > 0) {
       const timer = setTimeout(() => setAdCountdown(adCountdown - 1), 1000);
       return () => clearTimeout(timer);
+    } else if (showAd && adCountdown === 0) {
+      // Countdown finished, show the ad
+      loadAndShowInterstitialAd();
     }
   }, [showAd, adCountdown]);
 
@@ -66,6 +71,36 @@ export default function BobaRush() {
   };
   loadHighScore();
 }, []);
+
+  useEffect(() => {
+    const initializeAdMob = async () => {
+      try {
+        await AdMob.initialize({
+          requestTrackingAuthorization: true,
+        });
+        console.log('AdMob initialized successfully');
+      } catch (error) {
+        console.error('AdMob initialization failed:', error);
+      }
+    };
+    initializeAdMob();
+  }, []);
+
+  useEffect(() => {
+    const listener = AdMob.addListener(
+      InterstitialAdPluginEvents.Dismissed,
+      () => {
+        console.log('Ad was dismissed by user');
+        // Don't hide showAd - we want to show continue/end buttons
+        // Just reset the countdown so buttons appear
+        setAdCountdown(0);
+      }
+    );
+    
+    return () => {
+      listener.remove();
+    };
+  }, []);
 
   // Play catch sound effect
   const playCatchSound = () => {
@@ -208,15 +243,17 @@ export default function BobaRush() {
   const getFallSpeed = () => BASE_FALL_SPEED + (level - 1) * 0.5;
   const getSpawnRate = () => Math.max(400, BASE_SPAWN_RATE - (level - 1) * 80);
 
-  const startGame = () => {
-    setGameState('playing');
-    setScore(0);
-    setLevel(1);
-    setPearls([]);
-    setDrinkPosition(50);
-    lastSpawnTime.current = Date.now();
-    setSavedGameState(null);
-  };
+const startGame = () => {
+  setGameState('playing');
+  setScore(0);
+  setLevel(1);
+  setPearls([]);
+  setDrinkPosition(50);
+  lastSpawnTime.current = Date.now();
+  setSavedGameState(null);
+  setShowAd(false); // ADD THIS LINE
+  setAdCountdown(5); // ADD THIS LINE
+};
 
   const continueGame = () => {
     if (savedGameState) {
@@ -321,21 +358,24 @@ export default function BobaRush() {
           playCatchSound();
         }
 
-        if (missedPearl) {
-          playLoseSound();
-          setSavedGameState({ score, level, drinkPosition });
-          
-          // Save high score
-          const newHighScore = Math.max(highScore, score);
-          setHighScore(newHighScore);
-          Preferences.set({ key: 'highScore', value: newHighScore.toString() }).catch(err => {
-            console.error('Failed to save high score:', err);
-          });
-          
-          setShowAd(true);
-          setGameState('gameOver');
-          stopBackgroundMusic();
-        }
+      if (missedPearl) {
+        playLoseSound();
+        setSavedGameState({ score, level, drinkPosition });
+        
+        // Save high score
+        const newHighScore = Math.max(highScore, score);
+        setHighScore(newHighScore);
+        Preferences.set({ key: 'highScore', value: newHighScore.toString() }).catch(err => {
+          console.error('Failed to save high score:', err);
+        });
+        
+        setShowAd(true);
+        setGameState('gameOver');
+        stopBackgroundMusic();
+        
+        // Start 5 second countdown before showing ad
+        setAdCountdown(5);
+      }
 
         return newPearls;
       });
@@ -385,6 +425,37 @@ export default function BobaRush() {
 
   const handleMouseUp = () => {
     touchStartX.current = null;
+  };
+
+  const loadAndShowInterstitialAd = async () => {
+    try {
+      console.log('=== STARTING AD LOAD ===');
+      console.log('Preparing interstitial ad...');
+      
+      const options = {
+        adId: 'ca-app-pub-3940256099942544/4411468910',
+      };
+      
+      console.log('Ad options:', options);
+      
+      await AdMob.prepareInterstitial(options);
+      
+      console.log('Ad prepared successfully!');
+      console.log('Showing interstitial ad...');
+      
+      await AdMob.showInterstitial();
+      
+      console.log('Ad show command sent!');
+      
+    } catch (error) {
+      console.error('=== AD ERROR ===');
+      console.error('Error type:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
+      // Skip ad on failure
+      setShowAd(false);
+    }
   };
 
   return (
@@ -539,46 +610,50 @@ export default function BobaRush() {
         </div>
       )}
 
-      {gameState === 'gameOver' && showAd && (
-        <div className="text-center p-8 bg-white rounded-3xl shadow-2xl max-w-md mx-4">
-          <h2 className="text-3xl font-bold text-orange-500 mb-4">Oh No!</h2>
-          <p className="text-xl text-gray-700 mb-2">Score: {score}</p>
-          <p className="text-lg text-gray-600 mb-6">Level: {level}</p>
-          
-          {/* Simulated Video Ad */}
-          <div className="bg-gray-900 rounded-lg p-8 mb-6 relative">
-            <div className="text-white text-center">
-              <div className="text-6xl mb-4">📺</div>
-              <p className="text-lg mb-2">Watching Ad...</p>
-              <p className="text-3xl font-bold">{adCountdown}s</p>
-              <p className="text-sm text-gray-400 mt-2">
-                (This is a demo - integrate real ads like AdMob)
-              </p>
+  {gameState === 'gameOver' && showAd && (
+      <div className="text-center p-8 bg-white rounded-3xl shadow-2xl max-w-md mx-4">
+        <h2 className="text-3xl font-bold text-orange-500 mb-4">Oh No!</h2>
+        <p className="text-xl text-gray-700 mb-2">Score: {score}</p>
+        <p className="text-lg text-gray-600 mb-6">Level: {level}</p>
+        
+        {adCountdown > 0 ? (
+          <>
+            <div className="bg-purple-100 rounded-lg p-6 mb-6">
+              <p className="text-lg text-gray-700 mb-2">Watch an ad to continue?</p>
+              <p className="text-4xl font-bold text-purple-600">{adCountdown}s</p>
+              <p className="text-sm text-gray-500 mt-2">Ad will show automatically...</p>
             </div>
-          </div>
-
-          <div className="space-y-3">
-            <button
-              onClick={continueGame}
-              disabled={adCountdown > 0}
-              className={`w-full font-bold py-4 px-8 rounded-full text-xl shadow-lg transition ${
-                adCountdown > 0
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-xl transform hover:scale-105'
-              }`}
-            >
-              {adCountdown > 0 ? `Continue in ${adCountdown}s` : '✨ Continue Playing'}
-            </button>
             
             <button
               onClick={endGame}
               className="w-full bg-gray-200 text-gray-700 font-semibold py-3 px-8 rounded-full text-lg hover:bg-gray-300 transition"
             >
-              End Game
+              Skip - End Game
             </button>
-          </div>
-        </div>
-      )}
+          </>
+        ) : (
+          <>
+            <p className="text-gray-500 mb-6 italic">Showing ad...</p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={continueGame}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition"
+              >
+                ✨ Continue Playing
+              </button>
+              
+              <button
+                onClick={endGame}
+                className="w-full bg-gray-200 text-gray-700 font-semibold py-3 px-8 rounded-full text-lg hover:bg-gray-300 transition"
+              >
+                End Game
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    )}
 
       {gameState === 'gameOver' && !showAd && (
         <div className="text-center p-8 bg-white rounded-3xl shadow-2xl max-w-md mx-4">
