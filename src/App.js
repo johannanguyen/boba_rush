@@ -462,7 +462,7 @@ const startGame = () => {
     <div className="w-full h-screen bg-gradient-to-b from-pink-100 to-purple-100 flex flex-col items-center justify-center overflow-hidden">
       {gameState === 'start' && (
         <div className="text-center p-8 bg-white rounded-3xl shadow-2xl max-w-md mx-4">
-          <h1 className="text-5xl font-bold text-pink-500 mb-4">🧋 Boba Rush</h1>
+          <h1 className="text-5xl font-bold text-pink-500 mb-4">🧋 Boba Frenzy</h1>
           <p className="text-gray-700 mb-6 text-lg">Swipe to catch falling boba pearls!</p>
 
           {highScore > 0 && (
