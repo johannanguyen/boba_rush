@@ -96,11 +96,6 @@ export default function BobaRush() {
     );
     return () => { listener.remove(); };
   }, []);
-    
-    return () => {
-      listener.remove();
-    };
-  }, []);
 
   // Play catch sound effect
   const playCatchSound = () => {
@@ -433,7 +428,7 @@ const startGame = () => {
       console.log('Preparing rewarded ad...');
 
       const options = {
-        adId: 'ca-app-pub-3940256099942544/5224354917', // ← swap this for your rewarded ad unit ID
+        adId: 'ca-app-pub-9841742295978516/7033014149', // ← swap this for your rewarded ad unit ID
       };
 
       console.log('Ad options:', options);
