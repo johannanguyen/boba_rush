@@ -428,7 +428,7 @@ const startGame = () => {
       console.log('Preparing rewarded ad...');
 
       const options = {
-        adId: 'ca-app-pub-9841742295978516/7033014149', // ← swap this for your rewarded ad unit ID
+        adId: 'ca-app-pub-9841742295978516/7033014149', 
       };
 
       console.log('Ad options:', options);
