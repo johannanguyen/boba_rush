@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Preferences } from '@capacitor/preferences';
-import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
+import { AdMob, RewardAdPluginEvents, AdMobRewardItem } from '@capacitor-community/admob';
 
 
 export default function BobaRush() {
@@ -54,7 +54,7 @@ export default function BobaRush() {
       return () => clearTimeout(timer);
     } else if (showAd && adCountdown === 0) {
       // Countdown finished, show the ad
-      loadAndShowInterstitialAd();
+      loadAndShowRewardedAd();
     }
   }, [showAd, adCountdown]);
 
@@ -88,14 +88,14 @@ export default function BobaRush() {
 
   useEffect(() => {
     const listener = AdMob.addListener(
-      InterstitialAdPluginEvents.Dismissed,
-      () => {
-        console.log('Ad was dismissed by user');
-        // Don't hide showAd - we want to show continue/end buttons
-        // Just reset the countdown so buttons appear
+      RewardAdPluginEvents.Rewarded,
+      (reward) => {
+        console.log('User earned reward:', reward);
         setAdCountdown(0);
       }
     );
+    return () => { listener.remove(); };
+  }, []);
     
     return () => {
       listener.remove();
@@ -427,33 +427,31 @@ const startGame = () => {
     touchStartX.current = null;
   };
 
-  const loadAndShowInterstitialAd = async () => {
+    const loadAndShowRewardedAd = async () => {
     try {
       console.log('=== STARTING AD LOAD ===');
-      console.log('Preparing interstitial ad...');
-      
+      console.log('Preparing rewarded ad...');
+
       const options = {
-        adId: 'ca-app-pub-9841742295978516/9107747830',
+        adId: 'ca-app-pub-3940256099942544/5224354917', // ← swap this for your rewarded ad unit ID
       };
-      
+
       console.log('Ad options:', options);
-      
-      await AdMob.prepareInterstitial(options);
-      
+
+      await AdMob.prepareRewardVideoAd(options);
+
       console.log('Ad prepared successfully!');
-      console.log('Showing interstitial ad...');
-      
-      await AdMob.showInterstitial();
-      
+      console.log('Showing rewarded ad...');
+
+      await AdMob.showRewardVideoAd();
+
       console.log('Ad show command sent!');
-      
+
     } catch (error) {
       console.error('=== AD ERROR ===');
       console.error('Error type:', error);
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
-      
-      // Skip ad on failure
       setShowAd(false);
     }
   };
